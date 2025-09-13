@@ -36,7 +36,13 @@ export default function RootLayout() {
     <PaperProvider theme={paperTheme}>
       <ThemeProvider value={paperTheme}>
         <Stack>
-          <Stack.Screen name="index" />
+          <Stack.Screen
+            name="index"
+            options={{
+              title: "NotifIA",
+              headerShown: false,
+            }}
+          />
         </Stack>
       </ThemeProvider>
     </PaperProvider>
