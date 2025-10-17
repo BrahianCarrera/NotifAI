@@ -10,6 +10,7 @@ import {
   adaptNavigationTheme,
 } from "react-native-paper";
 
+import { AuthProvider } from "@/contexts/AuthContext";
 import {
   DarkTheme as NavigationDarkTheme,
   DefaultTheme as NavigationDefaultTheme,
@@ -35,15 +36,13 @@ export default function RootLayout() {
   return (
     <PaperProvider theme={paperTheme}>
       <ThemeProvider value={paperTheme}>
-        <Stack>
-          <Stack.Screen
-            name="index"
-            options={{
-              title: "NotifIA",
-              headerShown: false,
-            }}
-          />
-        </Stack>
+        <AuthProvider>
+          <Stack>
+            <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+            <Stack.Screen name="(app)" options={{ headerShown: false }} />
+            <Stack.Screen name="index" options={{ headerShown: false }} />
+          </Stack>
+        </AuthProvider>
       </ThemeProvider>
     </PaperProvider>
   );
