@@ -1,5 +1,6 @@
 import ArticleCard from "@/components/Card";
 import FeaturedCard from "@/components/FeaturedCard";
+import { useMyThemeContext } from "@/contexts/ThemeContext";
 import { apiRequest, handleApiResponse } from "@/utils/api";
 import { useEffect, useMemo, useState } from "react";
 import { ScrollView, View } from "react-native";
@@ -8,6 +9,7 @@ import {
   Chip,
   Divider,
   IconButton,
+  Menu,
   Text,
   TextInput,
   useTheme,
@@ -22,6 +24,11 @@ type UiArticle = {
   views: string;
 };
 
+type Category = {
+  id: number;
+  name: string;
+};
+
 const formatViews = (viewsCount?: number): string => {
   if (!viewsCount) return "0";
   if (viewsCount >= 1000000) return `${(viewsCount / 1000000).toFixed(1)}M`;
@@ -31,13 +38,20 @@ const formatViews = (viewsCount?: number): string => {
 
 export default function Index() {
   const theme = useTheme();
-  const [categories, setCategories] = useState<string[]>(["Todo"]);
-  const [selectedCategory, setSelectedCategory] = useState("Todo");
+  const { toggleTheme } = useMyThemeContext();
+  const [categories, setCategories] = useState<Category[]>([
+    { id: 0, name: "Todo" },
+  ]);
+  const [selectedCategory, setSelectedCategory] = useState<Category>({
+    id: 0,
+    name: "Todo",
+  });
   const [showSearch, setShowSearch] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [articles, setArticles] = useState<UiArticle[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [menuVisible, setMenuVisible] = useState(false);
 
   // Fetch categories on mount
   useEffect(() => {
@@ -46,12 +60,12 @@ export default function Index() {
       try {
         const res = await apiRequest("/categories");
         const json = await handleApiResponse(res);
-        const names: string[] = (json?.data?.categories || []).map(
-          (c: any) => c.name
-        );
-        if (isMounted) setCategories(["Todo", ...names]);
+        const fetchedCategories: Category[] = (
+          json?.data?.categories || []
+        ).map((c: any) => ({ id: c.id, name: c.name }));
+        if (isMounted)
+          setCategories([{ id: 0, name: "Todo" }, ...fetchedCategories]);
       } catch (e: any) {
-        // Keep default categories on error
         if (isMounted) setError(e?.message || "Error cargando categorías");
       }
     })();
@@ -60,7 +74,6 @@ export default function Index() {
     };
   }, []);
 
-  // Fetch articles when filters change (debounced)
   useEffect(() => {
     let isMounted = true;
     const controller = new AbortController();
@@ -72,14 +85,16 @@ export default function Index() {
         params.set("page", "1");
         params.set("limit", "10");
         if (searchQuery.trim()) params.set("search", searchQuery.trim());
-        if (selectedCategory !== "Todo")
-          params.set("category", selectedCategory);
+        if (selectedCategory.id !== 0)
+          params.set("category", String(selectedCategory.id));
         params.set("sort", "published_at");
         params.set("order", "desc");
 
         const res = await apiRequest(`/articles?${params.toString()}`, {
           signal: controller.signal as any,
         });
+
+        console.log(res);
         const json = await handleApiResponse(res);
         const apiArticles: any[] = json?.data?.articles || [];
         const mapped: UiArticle[] = apiArticles.map((a: any) => ({
@@ -113,7 +128,23 @@ export default function Index() {
   return (
     <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
       <Appbar.Header mode="small">
-        <IconButton icon="menu" onPress={() => {}} accessibilityLabel="Menu" />
+        <Menu
+          visible={menuVisible}
+          onDismiss={() => setMenuVisible(false)}
+          anchor={
+            <IconButton
+              icon="menu"
+              onPress={() => setMenuVisible(true)}
+              accessibilityLabel="Menu"
+            />
+          }
+        >
+          <Menu.Item onPress={() => {}} title="Perfil" />
+          <Menu.Item onPress={() => {}} title="Inicio" />
+          <Menu.Item onPress={() => {}} title="Marcadores" />
+          <Menu.Item onPress={() => {}} title="Historial" />
+          <Menu.Item onPress={toggleTheme} title="Modo Oscuro" />
+        </Menu>
 
         {!showSearch ? (
           <>
@@ -163,11 +194,11 @@ export default function Index() {
         >
           {categories.map((c) => (
             <Chip
-              key={c}
-              selected={selectedCategory === c}
+              key={c.id}
+              selected={selectedCategory.id === c.id}
               onPress={() => setSelectedCategory(c)}
             >
-              {c}
+              {c.name}
             </Chip>
           ))}
         </ScrollView>
