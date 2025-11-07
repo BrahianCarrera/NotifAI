@@ -1,15 +1,15 @@
+import AppDrawer, { AppDrawerRef } from "@/components/AppDrawer";
 import ArticleCard from "@/components/Card";
 import FeaturedCard from "@/components/FeaturedCard";
-import { useMyThemeContext } from "@/contexts/ThemeContext";
 import { apiRequest, handleApiResponse } from "@/utils/api";
-import { useEffect, useMemo, useState } from "react";
+import { Href, useRouter } from "expo-router";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ScrollView, View } from "react-native";
 import {
   Appbar,
   Chip,
   Divider,
   IconButton,
-  Menu,
   Text,
   TextInput,
   useTheme,
@@ -38,7 +38,8 @@ const formatViews = (viewsCount?: number): string => {
 
 export default function Index() {
   const theme = useTheme();
-  const { toggleTheme } = useMyThemeContext();
+  const router = useRouter();
+  const drawerRef = useRef<AppDrawerRef>(null);
   const [categories, setCategories] = useState<Category[]>([
     { id: 0, name: "Todo" },
   ]);
@@ -51,7 +52,6 @@ export default function Index() {
   const [articles, setArticles] = useState<UiArticle[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [menuVisible, setMenuVisible] = useState(false);
 
   // Fetch categories on mount
   useEffect(() => {
@@ -127,24 +127,31 @@ export default function Index() {
 
   return (
     <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
+      <AppDrawer
+        ref={drawerRef}
+        onProfilePress={() => {
+          // TODO: Navegar a la pantalla de perfil cuando esté disponible
+          console.log("Navegar a Perfil");
+        }}
+        onHomePress={() => {
+          router.push("/home" as Href);
+        }}
+        onBookmarksPress={() => {
+          // TODO: Navegar a la pantalla de marcadores cuando esté disponible
+          console.log("Navegar a Marcadores");
+        }}
+        onHistoryPress={() => {
+          // TODO: Navegar a la pantalla de historial cuando esté disponible
+          console.log("Navegar a Historial");
+        }}
+      />
+
       <Appbar.Header mode="small">
-        <Menu
-          visible={menuVisible}
-          onDismiss={() => setMenuVisible(false)}
-          anchor={
-            <IconButton
-              icon="menu"
-              onPress={() => setMenuVisible(true)}
-              accessibilityLabel="Menu"
-            />
-          }
-        >
-          <Menu.Item onPress={() => {}} title="Perfil" />
-          <Menu.Item onPress={() => {}} title="Inicio" />
-          <Menu.Item onPress={() => {}} title="Marcadores" />
-          <Menu.Item onPress={() => {}} title="Historial" />
-          <Menu.Item onPress={toggleTheme} title="Modo Oscuro" />
-        </Menu>
+        <Appbar.Action
+          icon="menu"
+          onPress={() => drawerRef.current?.open()}
+          accessibilityLabel="Menu"
+        />
 
         {!showSearch ? (
           <>

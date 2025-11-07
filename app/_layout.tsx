@@ -1,50 +1,58 @@
-import { Colors } from "@/constants/colors";
 import merge from "deepmerge";
-import { Stack } from "expo-router";
-import { useColorScheme } from "react-native";
+import { Redirect, Stack } from "expo-router";
 
-import {
-  MD3DarkTheme,
-  MD3LightTheme,
-  PaperProvider,
-  adaptNavigationTheme,
-} from "react-native-paper";
+import { PaperProvider, adaptNavigationTheme } from "react-native-paper";
 
-import { AuthProvider } from "@/contexts/AuthContext";
+import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { MyThemeProvider, useMyThemeContext } from "@/contexts/ThemeContext";
 import {
   DarkTheme as NavigationDarkTheme,
   DefaultTheme as NavigationDefaultTheme,
-  ThemeProvider,
+  ThemeProvider as NavigationThemeProvider,
 } from "@react-navigation/native";
-
-const customDarkTheme = { ...MD3DarkTheme, Colors: Colors.dark };
-const customLightTheme = { ...MD3LightTheme, Colors: Colors.light };
 
 const { LightTheme, DarkTheme } = adaptNavigationTheme({
   reactNavigationLight: NavigationDefaultTheme,
   reactNavigationDark: NavigationDarkTheme,
 });
 
-const CombinedDefaultTheme = merge(LightTheme, customLightTheme);
-const CombinedDarkTheme = merge(DarkTheme, customDarkTheme);
+function InitialLayout() {
+  const { isAuthenticated } = useAuth();
+  if (!isAuthenticated) {
+    return <Redirect href="/(auth)/login" />;
+  }
+  return (
+    <Stack>
+      <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+      <Stack.Screen name="(app)" options={{ headerShown: false }} />
+      <Stack.Screen name="home" options={{ headerShown: false }} />
+    </Stack>
+  );
+}
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
+  return (
+    <MyThemeProvider>
+      <RootLayoutContent />
+    </MyThemeProvider>
+  );
+}
 
-  const paperTheme =
-    colorScheme === "dark" ? CombinedDarkTheme : CombinedDefaultTheme;
+function RootLayoutContent() {
+  const { theme, isDarkTheme } = useMyThemeContext();
+  const paperTheme = theme;
+
+  // Adaptar el tema de Paper para React Navigation
+  const navigationTheme = isDarkTheme ? DarkTheme : LightTheme;
+  const combinedNavTheme = merge(navigationTheme, paperTheme);
+
   return (
     <PaperProvider theme={paperTheme}>
-      <ThemeProvider value={paperTheme}>
+      <NavigationThemeProvider value={combinedNavTheme}>
         <AuthProvider>
-          <Stack>
-            <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-            <Stack.Screen name="(app)" options={{ headerShown: false }} />
-            <Stack.Screen name="home" options={{ headerShown: false }} />
-            <Stack.Screen name="index" options={{ headerShown: false }} />
-          </Stack>
+          <InitialLayout />
         </AuthProvider>
-      </ThemeProvider>
+      </NavigationThemeProvider>
     </PaperProvider>
   );
 }
