@@ -8,14 +8,22 @@ type FeaturedCardProps = {
     title: string;
     summary: string;
     category: string;
-    image: any;
+    imageUrl: string;
     views: string;
   };
 };
 
 const FeaturedCard: React.FC<FeaturedCardProps> = ({ article }) => (
   <Card mode="elevated" style={{ borderRadius: 16 }}>
-    <Card.Cover source={article.image} style={{ height: 180 }} theme={{}} />
+    <Card.Cover
+      source={{ uri: article.imageUrl }}
+      style={{
+        height: 180,
+        borderBottomEndRadius: 0,
+        borderBottomStartRadius: 0,
+      }}
+      theme={{}}
+    />
     <Card.Content>
       <View style={{ marginTop: 8, marginBottom: 6 }}>
         <Chip compact>{article.category}</Chip>

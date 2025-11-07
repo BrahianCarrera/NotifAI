@@ -7,7 +7,7 @@ type ArticleCardProps = {
   title: string;
   summary: string;
   category: string;
-  image: any;
+  imageUrl: string;
   views: string;
   onPress?: () => void;
 };
@@ -17,7 +17,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
   title,
   summary,
   category,
-  image,
+  imageUrl,
   views,
   onPress,
 }) => {
@@ -37,7 +37,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
         }}
       >
         <Image
-          source={image}
+          source={{ uri: imageUrl }}
           style={{ width: 96, height: 72, borderRadius: 12 }}
           resizeMode="cover"
         />
