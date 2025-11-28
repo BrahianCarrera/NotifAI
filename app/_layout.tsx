@@ -1,5 +1,5 @@
 import merge from "deepmerge";
-import { Redirect, Stack } from "expo-router";
+import { Redirect, Stack, useSegments } from "expo-router";
 
 import { PaperProvider, adaptNavigationTheme } from "react-native-paper";
 
@@ -18,8 +18,15 @@ const { LightTheme, DarkTheme } = adaptNavigationTheme({
 
 function InitialLayout() {
   const { isAuthenticated } = useAuth();
-  if (!isAuthenticated) {
+  const segments = useSegments();
+  const inAuthGroup = segments[0] === "(auth)";
+
+  if (!isAuthenticated && !inAuthGroup) {
     return <Redirect href="/(auth)/login" />;
+  }
+
+  if (isAuthenticated && inAuthGroup) {
+    return <Redirect href="/home" />;
   }
   return (
     <Stack>
