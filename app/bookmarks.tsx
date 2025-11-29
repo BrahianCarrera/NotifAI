@@ -1,6 +1,6 @@
 import ArticleCard from "@/components/Card";
 import { apiRequest, handleApiResponse } from "@/utils/api";
-import { useRouter } from "expo-router";
+import { Href, useRouter } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import { RefreshControl, ScrollView, View } from "react-native";
 import {
@@ -167,8 +167,7 @@ export default function BookmarksScreen() {
               isBookmarked={item.isBookmarked}
               isLiked={item.isLiked}
               onPress={() => {
-                // TODO: Navigate to article detail when implemented
-                console.log("Navigate to article:", item.id);
+                router.push(`/article/${item.id}` as Href);
               }}
               onBookmarkPress={() => handleBookmarkToggle(item.id)}
               onLikePress={() => handleLikeToggle(item.id)}

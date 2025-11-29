@@ -20,6 +20,7 @@ type AuthContextValue = {
   user: User | null;
   signIn: (params: { email: string; password: string }) => Promise<void>;
   signOut: () => Promise<void>;
+  signUp: (params: { name: string; email: string; password: string }) => Promise<void>;
   loading: boolean;
 };
 
@@ -115,9 +116,44 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   }, []);
 
+  const signUp = useCallback(
+    async ({ name, email, password }: { name: string; email: string; password: string }) => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/auth/register`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ name, email, password }),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.message || "Error en el registro");
+        }
+
+        if (data.success) {
+          const userData = data.data.user;
+          setUser(userData);
+          setIsAuthenticated(true);
+
+          // Guardar usuario en AsyncStorage para persistencia
+          await AsyncStorage.setItem("user", JSON.stringify(userData));
+        } else {
+          throw new Error(data.message || "Error en el registro");
+        }
+      } catch (error) {
+        console.error("Error en registro:", error);
+        throw error;
+      }
+    },
+    []
+  );
+
   const value = useMemo(
-    () => ({ isAuthenticated, user, signIn, signOut, loading }),
-    [isAuthenticated, user, signIn, signOut, loading]
+    () => ({ isAuthenticated, user, signIn, signOut,signUp, loading }),
+    [isAuthenticated, user, signIn, signOut,signUp, loading]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

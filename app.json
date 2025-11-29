@@ -14,7 +14,7 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#438400"
       },
       "edgeToEdgeEnabled": true,
       "package": "com.chensoxo.NotifAI"
@@ -38,6 +38,12 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "a98f585c-2c51-4fcf-8619-81b34cccf448"
+      }
     }
   }
 }

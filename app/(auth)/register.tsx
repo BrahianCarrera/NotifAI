@@ -1,34 +1,37 @@
 import { useAuth } from "@/contexts/AuthContext";
-import { Href, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 import { useState } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 import {
-  Button,
-  IconButton,
-  Snackbar,
-  Surface,
-  Text,
-  TextInput,
-  useTheme,
+    Button,
+    IconButton,
+    Snackbar,
+    Surface,
+    Text,
+    TextInput,
+    useTheme,
 } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-export default function LoginScreen() {
+export default function RegisterScreen() {
   const theme = useTheme();
   const router = useRouter();
-  const { signIn } = useAuth();
+  const {signUp } = useAuth();
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [showSnackbar, setShowSnackbar] = useState(false);
 
-  const handleLogin = async () => {
+  const handleRegister = async () => {
     if (submitting) return;
 
     // Validación básica
-    if (!email.trim() || !password.trim()) {
+    if (!name.trim() || !email.trim() || !password.trim() || !confirmPassword.trim()) {
       setError("Por favor completa todos los campos");
       setShowSnackbar(true);
       return;
@@ -40,11 +43,24 @@ export default function LoginScreen() {
       return;
     }
 
+    if (password.length < 6) {
+      setError("La contraseña debe tener al menos 6 caracteres");
+      setShowSnackbar(true);
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setError("Las contraseñas no coinciden");
+      setShowSnackbar(true);
+      return;
+    }
+
     setSubmitting(true);
     setError("");
 
     try {
-      await signIn({ email, password });
+      await signUp({ name, email, password });
+      // Navigation is handled by _layout.tsx
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : "Error desconocido";
@@ -91,15 +107,27 @@ export default function LoginScreen() {
               variant="bodyLarge"
               style={[styles.subtitle, { color: theme.colors.onSurfaceVariant }]}
             >
-              Noticias inteligentes al instante
+              Crea tu cuenta
             </Text>
           </View>
 
           {/* Form Section */}
           <View style={styles.formContainer}>
             <Text variant="headlineSmall" style={styles.formTitle}>
-              Iniciar sesión
+              Registro
             </Text>
+
+            <TextInput
+              mode="outlined"
+              label="Nombre completo"
+              value={name}
+              onChangeText={setName}
+              autoCapitalize="words"
+              autoComplete="name"
+              left={<TextInput.Icon icon="account-outline" />}
+              style={styles.input}
+              disabled={submitting}
+            />
 
             <TextInput
               mode="outlined"
@@ -120,7 +148,7 @@ export default function LoginScreen() {
               value={password}
               onChangeText={setPassword}
               secureTextEntry={!showPassword}
-              autoComplete="password"
+              autoComplete="password-new"
               left={<TextInput.Icon icon="lock-outline" />}
               right={
                 <TextInput.Icon
@@ -132,18 +160,34 @@ export default function LoginScreen() {
               disabled={submitting}
             />
 
+            <TextInput
+              mode="outlined"
+              label="Confirmar contraseña"
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
+              secureTextEntry={!showConfirmPassword}
+              autoComplete="password-new"
+              left={<TextInput.Icon icon="lock-check-outline" />}
+              right={
+                <TextInput.Icon
+                  icon={showConfirmPassword ? "eye-off" : "eye"}
+                  onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                />
+              }
+              style={styles.input}
+              disabled={submitting}
+            />
+
             <Button
               mode="contained"
-              onPress={handleLogin}
+              onPress={handleRegister}
               loading={submitting}
               disabled={submitting}
-              style={styles.loginButton}
-              contentStyle={styles.loginButtonContent}
+              style={styles.registerButton}
+              contentStyle={styles.registerButtonContent}
             >
-              Entrar
+              Crear cuenta
             </Button>
-
-
           </View>
 
           {/* Footer */}
@@ -152,16 +196,16 @@ export default function LoginScreen() {
               variant="bodySmall"
               style={{ color: theme.colors.onSurfaceVariant }}
             >
-              ¿No tienes una cuenta?
+              ¿Ya tienes una cuenta?
             </Text>
             <Button
               mode="text"
               onPress={() => {
-                router.push("/(auth)/register" as Href);
+                router.back();
               }}
               disabled={submitting}
             >
-              Regístrate
+              Inicia sesión
             </Button>
           </View>
         </View>
@@ -216,15 +260,11 @@ const styles = StyleSheet.create({
   input: {
     marginBottom: 16,
   },
-  loginButton: {
+  registerButton: {
     marginTop: 8,
-    marginBottom: 8,
   },
-  loginButtonContent: {
+  registerButtonContent: {
     paddingVertical: 8,
-  },
-  forgotButton: {
-    alignSelf: "center",
   },
   footer: {
     flexDirection: "row",

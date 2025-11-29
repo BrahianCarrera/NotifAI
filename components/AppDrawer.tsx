@@ -93,15 +93,16 @@ const AppDrawer = forwardRef<AppDrawerRef, AppDrawerProps>(
             <ScrollView>
               <Drawer.Section title="Menú">
                 <Drawer.Item
-                  icon="account"
-                  label="Perfil"
-                  onPress={() => handleDrawerAction(onProfilePress)}
-                />
-                <Drawer.Item
                   icon="home"
                   label="Inicio"
                   onPress={() => handleDrawerAction(onHomePress)}
                 />
+                <Drawer.Item
+                  icon="account"
+                  label="Perfil"
+                  onPress={() => handleDrawerAction(onProfilePress)}
+                />
+                
                 <Drawer.Item
                   icon="bookmark"
                   label="Marcadores"

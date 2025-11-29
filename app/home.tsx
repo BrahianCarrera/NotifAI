@@ -3,8 +3,8 @@ import ArticleCard from "@/components/Card";
 import FeaturedCard from "@/components/FeaturedCard";
 import { apiRequest, handleApiResponse } from "@/utils/api";
 import { Href, useRouter } from "expo-router";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { ScrollView, View } from "react-native";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { ScrollView, StyleSheet, View } from "react-native";
 import {
   Appbar,
   Chip,
@@ -79,53 +79,56 @@ export default function Index() {
     };
   }, []);
 
+  const fetchArticles = useCallback(async (silent = false) => {
+    if (!silent) setLoading(true);
+    if (!silent) setError(null);
+
+    try {
+      const params = new URLSearchParams();
+      params.set("page", "1");
+      params.set("limit", "10");
+      if (searchQuery.trim()) params.set("search", searchQuery.trim());
+      if (selectedCategory.id !== 0)
+        params.set("category", String(selectedCategory.id));
+      params.set("sort", "published_at");
+      params.set("order", "desc");
+
+      const res = await apiRequest(`/articles?${params.toString()}`);
+      const json = await handleApiResponse(res);
+      const apiArticles: any[] = json?.data?.articles || [];
+      const mapped: UiArticle[] = apiArticles.map((a: any) => ({
+        id: String(a.id),
+        title: a.title,
+        summary: a.summary,
+        category: a.category_name || "",
+        imageUrl: a.image_url || "https://placehold.co/600x400/png",
+        views: formatViews(a.views_count),
+        likes: a.likes_count || 0,
+        isBookmarked: a.is_favorite || false,
+        isLiked: a.is_liked || false,
+      }));
+      setArticles(mapped);
+    } catch (e: any) {
+      if (!silent) setError(e?.message || "Error cargando artículos");
+    } finally {
+      if (!silent) setLoading(false);
+    }
+  }, [selectedCategory, searchQuery]);
+
+  // Initial fetch and filter changes (debounced)
   useEffect(() => {
-    let isMounted = true;
-    const controller = new AbortController();
-    const timeout = setTimeout(async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const params = new URLSearchParams();
-        params.set("page", "1");
-        params.set("limit", "10");
-        if (searchQuery.trim()) params.set("search", searchQuery.trim());
-        if (selectedCategory.id !== 0)
-          params.set("category", String(selectedCategory.id));
-        params.set("sort", "published_at");
-        params.set("order", "desc");
-
-        const res = await apiRequest(`/articles?${params.toString()}`, {
-          signal: controller.signal as any,
-        });
-
-        console.log(res);
-        const json = await handleApiResponse(res);
-        const apiArticles: any[] = json?.data?.articles || [];
-        const mapped: UiArticle[] = apiArticles.map((a: any) => ({
-          id: String(a.id),
-          title: a.title,
-          summary: a.summary,
-          category: a.category_name || "",
-          imageUrl: a.image_url || "https://placehold.co/600x400/png",
-          views: formatViews(a.views_count),
-          likes: a.likes_count || 0,
-          isBookmarked: a.is_favorite || false,
-          isLiked: a.is_liked || false,
-        }));
-        if (isMounted) setArticles(mapped);
-      } catch (e: any) {
-        if (isMounted) setError(e?.message || "Error cargando artículos");
-      } finally {
-        if (isMounted) setLoading(false);
-      }
+    const timeout = setTimeout(() => {
+      fetchArticles();
     }, 300);
+    return () => clearTimeout(timeout);
+  }, [selectedCategory, searchQuery]);
 
-    return () => {
-      isMounted = false;
-      clearTimeout(timeout);
-      controller.abort();
-    };
+  // Polling for real-time updates
+  useEffect(() => {
+    const interval = setInterval(() => {
+      fetchArticles(true);
+    }, 10000);
+    return () => clearInterval(interval);
   }, [selectedCategory, searchQuery]);
 
   const handleBookmarkToggle = async (articleId: string) => {
@@ -176,8 +179,7 @@ export default function Index() {
       <AppDrawer
         ref={drawerRef}
         onProfilePress={() => {
-          // TODO: Navegar a la pantalla de perfil cuando esté disponible
-          console.log("Navegar a Perfil");
+          router.push("/profile" as Href);
         }}
         onHomePress={() => {
           router.push("/home" as Href);
@@ -186,8 +188,7 @@ export default function Index() {
           router.push("/bookmarks" as Href);
         }}
         onHistoryPress={() => {
-          // TODO: Navegar a la pantalla de historial cuando esté disponible
-          console.log("Navegar a Historial");
+          router.push("/history" as Href);
         }}
       />
 
@@ -200,7 +201,15 @@ export default function Index() {
 
         {!showSearch ? (
           <>
-            <Appbar.Content title="NotifIA" />
+          <View style={styles.logoContainer}>
+            <IconButton
+                icon="newspaper-variant"
+                size={32}
+                iconColor={theme.colors.primary}
+            />
+            </View>
+            <Appbar.Content title="NotifIA" titleStyle={{ fontWeight: "bold", color: theme.colors.primary }} />
+            
             <IconButton
               icon="magnify"
               onPress={() => setShowSearch(true)}
@@ -259,6 +268,7 @@ export default function Index() {
           <View style={{ paddingHorizontal: 16, paddingVertical: 12 }}>
             <FeaturedCard
               article={featured}
+              onPress={() => router.push(`/article/${featured.id}` as Href)}
               onBookmarkPress={() => handleBookmarkToggle(featured.id)}
               onLikePress={() => handleLikeToggle(featured.id)}
             />
@@ -286,6 +296,7 @@ export default function Index() {
                 likes={item.likes}
                 isBookmarked={item.isBookmarked}
                 isLiked={item.isLiked}
+                onPress={() => router.push(`/article/${item.id}` as Href)}
                 onBookmarkPress={() => handleBookmarkToggle(item.id)}
                 onLikePress={() => handleLikeToggle(item.id)}
               />
@@ -295,3 +306,14 @@ export default function Index() {
     </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  
+  logoContainer: {
+    width: 32,
+    height: 32,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 8,
+  },
+});
