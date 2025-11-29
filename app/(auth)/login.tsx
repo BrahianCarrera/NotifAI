@@ -1,5 +1,5 @@
 import { useAuth } from "@/contexts/AuthContext";
-import { Href, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 import { useState } from "react";
 import { View } from "react-native";
 import {
@@ -42,7 +42,7 @@ export default function LoginScreen() {
 
     try {
       await signIn({ email, password });
-      router.replace("/home" as Href);
+      // router.replace("/home" as Href); // Redirección manejada por _layout.tsx
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : "Error desconocido";

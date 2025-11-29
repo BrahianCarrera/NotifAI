@@ -33,7 +33,7 @@ export const useAuth = (): AuthContextValue => {
   return ctx;
 };
 
-const API_BASE_URL = "http://localhost:3000/api";
+const API_BASE_URL = "https://notifai-backend.onrender.com/api";
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   children,

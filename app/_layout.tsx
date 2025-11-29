@@ -1,5 +1,6 @@
 import merge from "deepmerge";
-import { Redirect, Stack, useSegments } from "expo-router";
+import { Stack, useRouter, useSegments } from "expo-router";
+import { useEffect } from "react";
 
 import { PaperProvider, adaptNavigationTheme } from "react-native-paper";
 
@@ -17,22 +18,28 @@ const { LightTheme, DarkTheme } = adaptNavigationTheme({
 });
 
 function InitialLayout() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, loading } = useAuth();
   const segments = useSegments();
+  const router = useRouter();
   const inAuthGroup = segments[0] === "(auth)";
 
-  if (!isAuthenticated && !inAuthGroup) {
-    return <Redirect href="/(auth)/login" />;
-  }
+  useEffect(() => {
+    if (loading) return; // Wait for auth to finish loading
 
-  if (isAuthenticated && inAuthGroup) {
-    return <Redirect href="/home" />;
-  }
+    if (!isAuthenticated && !inAuthGroup) {
+      // User is not authenticated and not in auth group, redirect to login
+      router.replace("/(auth)/login");
+    } else if (isAuthenticated && inAuthGroup) {
+      // User is authenticated but in auth group, redirect to home
+      router.replace("/home");
+    }
+  }, [isAuthenticated, loading, inAuthGroup, segments]);
+
   return (
     <Stack>
       <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-      <Stack.Screen name="(app)" options={{ headerShown: false }} />
       <Stack.Screen name="home" options={{ headerShown: false }} />
+      <Stack.Screen name="index" options={{ headerShown: false }} />
     </Stack>
   );
 }
