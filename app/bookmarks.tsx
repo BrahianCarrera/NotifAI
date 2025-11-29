@@ -1,5 +1,6 @@
 import AppDrawer, { AppDrawerRef } from "@/components/AppDrawer";
 import ArticleCard from "@/components/Card";
+import ArticleModal from "@/components/ArticleModal";
 import { useAuth } from "@/contexts/AuthContext";
 import { apiRequest, handleApiResponse } from "@/utils/api";
 import { Href, useRouter, Redirect } from "expo-router";
@@ -38,6 +39,8 @@ export default function BookmarksScreen() {
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [selectedArticleId, setSelectedArticleId] = useState<string | null>(null);
+  const [modalVisible, setModalVisible] = useState(false);
 
   // Redirect if not authenticated
   if (!isAuthenticated) {
@@ -101,6 +104,23 @@ export default function BookmarksScreen() {
   const onRefresh = () => {
     setRefreshing(true);
     fetchBookmarkedArticles(true);
+  };
+
+  const handleArticlePress = (articleId: string) => {
+    setSelectedArticleId(articleId);
+    setModalVisible(true);
+  };
+
+  const handleModalDismiss = () => {
+    setModalVisible(false);
+    setSelectedArticleId(null);
+  };
+
+  const handleModalToggleFavorite = (isFavorite: boolean) => {
+    if (selectedArticleId && !isFavorite) {
+      // If unfavorited in modal, remove from the list
+      setArticles((prev) => prev.filter((article) => article.id !== selectedArticleId));
+    }
   };
 
   return (
@@ -174,10 +194,18 @@ export default function BookmarksScreen() {
               imageUrl={item.imageUrl}
               views={item.views}
               isFavorite={item.isFavorite}
+              onPress={() => handleArticlePress(item.id)}
               onToggleFavorite={() => handleToggleFavorite(item.id)}
             />
           ))}
       </ScrollView>
+
+      <ArticleModal
+        visible={modalVisible}
+        articleId={selectedArticleId}
+        onDismiss={handleModalDismiss}
+        onToggleFavorite={handleModalToggleFavorite}
+      />
     </View>
   );
 }

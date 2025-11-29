@@ -1,6 +1,7 @@
 import AppDrawer, { AppDrawerRef } from "@/components/AppDrawer";
 import ArticleCard from "@/components/Card";
 import FeaturedCard from "@/components/FeaturedCard";
+import ArticleModal from "@/components/ArticleModal";
 import { apiRequest, handleApiResponse } from "@/utils/api";
 import { Href, useRouter } from "expo-router";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -53,6 +54,8 @@ export default function Index() {
   const [articles, setArticles] = useState<UiArticle[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [selectedArticleId, setSelectedArticleId] = useState<string | null>(null);
+  const [modalVisible, setModalVisible] = useState(false);
 
   // Fetch categories on mount
   useEffect(() => {
@@ -147,6 +150,28 @@ export default function Index() {
     }
   };
 
+  const handleArticlePress = (articleId: string) => {
+    setSelectedArticleId(articleId);
+    setModalVisible(true);
+  };
+
+  const handleModalDismiss = () => {
+    setModalVisible(false);
+    setSelectedArticleId(null);
+  };
+
+  const handleModalToggleFavorite = (isFavorite: boolean) => {
+    if (selectedArticleId) {
+      setArticles((prev) =>
+        prev.map((article) =>
+          article.id === selectedArticleId
+            ? { ...article, isFavorite }
+            : article
+        )
+      );
+    }
+  };
+
   return (
     <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
       <AppDrawer
@@ -236,6 +261,7 @@ export default function Index() {
             <FeaturedCard
               article={featured}
               isFavorite={featured.isFavorite}
+              onPress={() => handleArticlePress(featured.id)}
               onToggleFavorite={() => handleToggleFavorite(featured.id)}
             />
           </View>
@@ -260,11 +286,19 @@ export default function Index() {
                 imageUrl={item.imageUrl}
                 views={item.views}
                 isFavorite={item.isFavorite}
+                onPress={() => handleArticlePress(item.id)}
                 onToggleFavorite={() => handleToggleFavorite(item.id)}
               />
             ))}
         </View>
       </ScrollView>
+
+      <ArticleModal
+        visible={modalVisible}
+        articleId={selectedArticleId}
+        onDismiss={handleModalDismiss}
+        onToggleFavorite={handleModalToggleFavorite}
+      />
     </View>
   );
 }

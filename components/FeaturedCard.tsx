@@ -12,15 +12,17 @@ type FeaturedCardProps = {
     views: string;
   };
   isFavorite?: boolean;
+  onPress?: () => void;
   onToggleFavorite?: () => void;
 };
 
 const FeaturedCard: React.FC<FeaturedCardProps> = ({
   article,
   isFavorite = false,
+  onPress,
   onToggleFavorite
 }) => (
-  <Card mode="elevated" style={{ borderRadius: 16 }}>
+  <Card mode="elevated" style={{ borderRadius: 16 }} onPress={onPress}>
     <Card.Cover
       source={{ uri: article.imageUrl }}
       style={{
