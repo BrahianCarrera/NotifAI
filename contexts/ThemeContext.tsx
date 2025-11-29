@@ -1,3 +1,4 @@
+import { Colors } from "@/constants/colors";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { MD3DarkTheme, MD3LightTheme } from "react-native-paper";
@@ -16,6 +17,23 @@ export const useMyThemeContext = () => {
     throw new Error("useMyThemeContext must be used within a MyThemeProvider");
   }
   return context;
+};
+
+// Create custom themes using your color definitions
+const CustomLightTheme = {
+  ...MD3LightTheme,
+  colors: {
+    ...MD3LightTheme.colors,
+    ...Colors.light,
+  },
+};
+
+const CustomDarkTheme = {
+  ...MD3DarkTheme,
+  colors: {
+    ...MD3DarkTheme.colors,
+    ...Colors.dark,
+  },
 };
 
 export const MyThemeProvider: React.FC<{ children: React.ReactNode }> = ({
@@ -47,7 +65,7 @@ export const MyThemeProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
-  const theme = isDarkTheme ? MD3DarkTheme : MD3LightTheme;
+  const theme = isDarkTheme ? CustomDarkTheme : CustomLightTheme;
 
   return (
     <ThemeContext.Provider value={{ isDarkTheme, toggleTheme, theme }}>

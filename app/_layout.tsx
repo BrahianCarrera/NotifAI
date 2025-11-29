@@ -1,8 +1,12 @@
-import merge from "deepmerge";
 import { Stack, useRouter, useSegments } from "expo-router";
 import { useEffect } from "react";
 
-import { PaperProvider, adaptNavigationTheme } from "react-native-paper";
+import {
+  MD3DarkTheme,
+  MD3LightTheme,
+  PaperProvider,
+  adaptNavigationTheme,
+} from "react-native-paper";
 
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { MyThemeProvider, useMyThemeContext } from "@/contexts/ThemeContext";
@@ -12,9 +16,12 @@ import {
   ThemeProvider as NavigationThemeProvider,
 } from "@react-navigation/native";
 
+// Adapt navigation themes using Paper's Material Design 3 themes
 const { LightTheme, DarkTheme } = adaptNavigationTheme({
   reactNavigationLight: NavigationDefaultTheme,
   reactNavigationDark: NavigationDarkTheme,
+  materialLight: MD3LightTheme,
+  materialDark: MD3DarkTheme,
 });
 
 function InitialLayout() {
@@ -54,15 +61,13 @@ export default function RootLayout() {
 
 function RootLayoutContent() {
   const { theme, isDarkTheme } = useMyThemeContext();
-  const paperTheme = theme;
 
-  // Adaptar el tema de Paper para React Navigation
+  // Use the adapted navigation theme based on dark mode
   const navigationTheme = isDarkTheme ? DarkTheme : LightTheme;
-  const combinedNavTheme = merge(navigationTheme, paperTheme);
 
   return (
-    <PaperProvider theme={paperTheme}>
-      <NavigationThemeProvider value={combinedNavTheme}>
+    <PaperProvider theme={theme}>
+      <NavigationThemeProvider value={navigationTheme}>
         <AuthProvider>
           <InitialLayout />
         </AuthProvider>

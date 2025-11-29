@@ -18,7 +18,7 @@ export interface AppDrawerRef {
 const AppDrawer = forwardRef<AppDrawerRef, AppDrawerProps>(
   ({ onProfilePress, onHomePress, onBookmarksPress, onHistoryPress }, ref) => {
     const theme = useTheme();
-    const { toggleTheme } = useMyThemeContext();
+    const { toggleTheme, isDarkTheme } = useMyThemeContext();
     const [drawerVisible, setDrawerVisible] = useState(false);
     const slideAnim = useRef(new Animated.Value(-300)).current;
 
@@ -112,12 +112,10 @@ const AppDrawer = forwardRef<AppDrawerRef, AppDrawerProps>(
               <Drawer.Section>
                 <Drawer.Item
                   icon="theme-light-dark"
-                  label="Modo Oscuro"
-                  onPress={() =>
-                    handleDrawerAction(() => {
-                      toggleTheme();
-                    })
-                  }
+                  label={isDarkTheme ? "Modo Claro" : "Modo Oscuro"}
+                  onPress={() => {
+                    toggleTheme();
+                  }}
                 />
               </Drawer.Section>
             </ScrollView>
