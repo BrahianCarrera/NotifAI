@@ -11,6 +11,8 @@ export const API_CONFIG = {
   },
 };
 
+//cambio de prueba
+
 // Función helper para hacer requests
 export const apiRequest = async (
   endpoint: string,
