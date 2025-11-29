@@ -2,6 +2,7 @@ import { useMyThemeContext } from "@/contexts/ThemeContext";
 import { forwardRef, useImperativeHandle, useRef, useState } from "react";
 import { Animated, ScrollView, TouchableOpacity, View } from "react-native";
 import { Drawer, useTheme } from "react-native-paper";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 interface AppDrawerProps {
   onProfilePress?: () => void;
@@ -18,9 +19,10 @@ export interface AppDrawerRef {
 const AppDrawer = forwardRef<AppDrawerRef, AppDrawerProps>(
   ({ onProfilePress, onHomePress, onBookmarksPress, onHistoryPress }, ref) => {
     const theme = useTheme();
-    const { toggleTheme, isDarkTheme } = useMyThemeContext();
+    const { isDarkTheme } = useMyThemeContext();
     const [drawerVisible, setDrawerVisible] = useState(false);
     const slideAnim = useRef(new Animated.Value(-300)).current;
+    const insets = useSafeAreaInsets();
 
     const openDrawer = () => {
       setDrawerVisible(true);
@@ -83,9 +85,11 @@ const AppDrawer = forwardRef<AppDrawerRef, AppDrawerProps>(
             shadowOffset: { width: 2, height: 0 },
             shadowOpacity: 0.25,
             shadowRadius: 3.84,
+            paddingTop: insets.top,
+            paddingBottom: insets.bottom,
           }}
         >
-          <View style={{ paddingTop: 60, paddingHorizontal: 16 }}>
+          <View style={{ flex: 1, paddingHorizontal: 16 }}>
             <ScrollView>
               <Drawer.Section title="Menú">
                 <Drawer.Item
@@ -107,15 +111,6 @@ const AppDrawer = forwardRef<AppDrawerRef, AppDrawerProps>(
                   icon="history"
                   label="Historial"
                   onPress={() => handleDrawerAction(onHistoryPress)}
-                />
-              </Drawer.Section>
-              <Drawer.Section>
-                <Drawer.Item
-                  icon="theme-light-dark"
-                  label={isDarkTheme ? "Modo Claro" : "Modo Oscuro"}
-                  onPress={() => {
-                    toggleTheme();
-                  }}
                 />
               </Drawer.Section>
             </ScrollView>

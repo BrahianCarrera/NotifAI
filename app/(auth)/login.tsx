@@ -1,15 +1,17 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { View } from "react-native";
+import { ScrollView, StyleSheet, View } from "react-native";
 import {
-  Appbar,
   Button,
+  IconButton,
   Snackbar,
+  Surface,
   Text,
   TextInput,
   useTheme,
 } from "react-native-paper";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function LoginScreen() {
   const theme = useTheme();
@@ -17,6 +19,7 @@ export default function LoginScreen() {
   const { signIn } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [showSnackbar, setShowSnackbar] = useState(false);
@@ -42,7 +45,7 @@ export default function LoginScreen() {
 
     try {
       await signIn({ email, password });
-      // router.replace("/home" as Href); // Redirección manejada por _layout.tsx
+      // Redirección manejada por _layout.tsx
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : "Error desconocido";
@@ -54,36 +57,127 @@ export default function LoginScreen() {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
-      <Appbar.Header>
-        <Appbar.Content title="Iniciar sesión" />
-      </Appbar.Header>
+    <SafeAreaView
+      style={{ flex: 1, backgroundColor: theme.colors.background }}
+    >
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+      >
+        <View style={styles.container}>
+          {/* Logo/Icon Section */}
+          <View style={styles.logoContainer}>
+            <Surface
+              style={[
+                styles.logoSurface,
+                {
+                  backgroundColor: theme.colors.primaryContainer,
+                },
+              ]}
+              elevation={2}
+            >
+              <IconButton
+                icon="newspaper-variant"
+                size={64}
+                iconColor={theme.colors.primary}
+              />
+            </Surface>
+            <Text
+              variant="displaySmall"
+              style={[styles.title, { color: theme.colors.primary }]}
+            >
+              NotifIA
+            </Text>
+            <Text
+              variant="bodyLarge"
+              style={[styles.subtitle, { color: theme.colors.onSurfaceVariant }]}
+            >
+              Noticias inteligentes al instante
+            </Text>
+          </View>
 
-      <View style={{ padding: 16, gap: 12 }}>
-        <Text variant="headlineMedium" style={{ marginBottom: 8 }}>
-          Bienvenido a NotifIA
-        </Text>
-        <TextInput
-          mode="outlined"
-          label="Email"
-          value={email}
-          onChangeText={setEmail}
-          inputMode="email"
-          autoCapitalize="none"
-          autoComplete="email"
-        />
-        <TextInput
-          mode="outlined"
-          label="Contraseña"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-          autoComplete="password"
-        />
-        <Button mode="contained" onPress={handleLogin} loading={submitting}>
-          Entrar
-        </Button>
-      </View>
+          {/* Form Section */}
+          <View style={styles.formContainer}>
+            <Text variant="headlineSmall" style={styles.formTitle}>
+              Iniciar sesión
+            </Text>
+
+            <TextInput
+              mode="outlined"
+              label="Correo electrónico"
+              value={email}
+              onChangeText={setEmail}
+              inputMode="email"
+              autoCapitalize="none"
+              autoComplete="email"
+              left={<TextInput.Icon icon="email-outline" />}
+              style={styles.input}
+              disabled={submitting}
+            />
+
+            <TextInput
+              mode="outlined"
+              label="Contraseña"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry={!showPassword}
+              autoComplete="password"
+              left={<TextInput.Icon icon="lock-outline" />}
+              right={
+                <TextInput.Icon
+                  icon={showPassword ? "eye-off" : "eye"}
+                  onPress={() => setShowPassword(!showPassword)}
+                />
+              }
+              style={styles.input}
+              disabled={submitting}
+            />
+
+            <Button
+              mode="contained"
+              onPress={handleLogin}
+              loading={submitting}
+              disabled={submitting}
+              style={styles.loginButton}
+              contentStyle={styles.loginButtonContent}
+            >
+              Entrar
+            </Button>
+
+            <Button
+              mode="text"
+              onPress={() => {
+                // TODO: Navigate to forgot password screen
+                console.log("Forgot password");
+              }}
+              style={styles.forgotButton}
+              disabled={submitting}
+            >
+              ¿Olvidaste tu contraseña?
+            </Button>
+          </View>
+
+          {/* Footer */}
+          <View style={styles.footer}>
+            <Text
+              variant="bodySmall"
+              style={{ color: theme.colors.onSurfaceVariant }}
+            >
+              ¿No tienes una cuenta?
+            </Text>
+            <Button
+              mode="text"
+              onPress={() => {
+                // TODO: Navigate to register screen
+                console.log("Register");
+              }}
+              disabled={submitting}
+            >
+              Regístrate
+            </Button>
+          </View>
+        </View>
+      </ScrollView>
 
       <Snackbar
         visible={showSnackbar}
@@ -96,6 +190,58 @@ export default function LoginScreen() {
       >
         {error}
       </Snackbar>
-    </View>
+    </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  scrollContent: {
+    flexGrow: 1,
+  },
+  container: {
+    flex: 1,
+    padding: 24,
+    justifyContent: "center",
+  },
+  logoContainer: {
+    alignItems: "center",
+    marginBottom: 48,
+  },
+  logoSurface: {
+    borderRadius: 80,
+    marginBottom: 16,
+  },
+  title: {
+    fontWeight: "bold",
+    marginBottom: 8,
+  },
+  subtitle: {
+    textAlign: "center",
+  },
+  formContainer: {
+    marginBottom: 32,
+  },
+  formTitle: {
+    marginBottom: 24,
+    fontWeight: "600",
+  },
+  input: {
+    marginBottom: 16,
+  },
+  loginButton: {
+    marginTop: 8,
+    marginBottom: 8,
+  },
+  loginButtonContent: {
+    paddingVertical: 8,
+  },
+  forgotButton: {
+    alignSelf: "center",
+  },
+  footer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 8,
+  },
+});

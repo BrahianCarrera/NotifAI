@@ -2,10 +2,10 @@ import { Stack, useRouter, useSegments } from "expo-router";
 import { useEffect } from "react";
 
 import {
+  adaptNavigationTheme,
   MD3DarkTheme,
   MD3LightTheme,
   PaperProvider,
-  adaptNavigationTheme,
 } from "react-native-paper";
 
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
@@ -15,6 +15,7 @@ import {
   DefaultTheme as NavigationDefaultTheme,
   ThemeProvider as NavigationThemeProvider,
 } from "@react-navigation/native";
+import { initialWindowMetrics, SafeAreaProvider } from "react-native-safe-area-context";
 
 // Adapt navigation themes using Paper's Material Design 3 themes
 const { LightTheme, DarkTheme } = adaptNavigationTheme({
@@ -46,6 +47,7 @@ function InitialLayout() {
     <Stack>
       <Stack.Screen name="(auth)" options={{ headerShown: false }} />
       <Stack.Screen name="home" options={{ headerShown: false }} />
+      <Stack.Screen name="bookmarks" options={{ headerShown: false }} />
       <Stack.Screen name="index" options={{ headerShown: false }} />
     </Stack>
   );
@@ -69,7 +71,9 @@ function RootLayoutContent() {
     <PaperProvider theme={theme}>
       <NavigationThemeProvider value={navigationTheme}>
         <AuthProvider>
-          <InitialLayout />
+          <SafeAreaProvider initialMetrics={initialWindowMetrics}>
+            <InitialLayout />
+          </SafeAreaProvider>
         </AuthProvider>
       </NavigationThemeProvider>
     </PaperProvider>

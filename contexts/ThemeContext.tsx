@@ -1,11 +1,10 @@
 import { Colors } from "@/constants/colors";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext } from "react";
+import { useColorScheme } from "react-native";
 import { MD3DarkTheme, MD3LightTheme } from "react-native-paper";
 
 interface ThemeContextType {
   isDarkTheme: boolean;
-  toggleTheme: () => void;
   theme: typeof MD3DarkTheme | typeof MD3LightTheme;
 }
 
@@ -39,36 +38,13 @@ const CustomDarkTheme = {
 export const MyThemeProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const [isDarkTheme, setIsDarkTheme] = useState(false);
-
-  useEffect(() => {
-    const loadTheme = async () => {
-      try {
-        const storedTheme = await AsyncStorage.getItem("isDarkTheme");
-        if (storedTheme !== null) {
-          setIsDarkTheme(JSON.parse(storedTheme));
-        }
-      } catch (e) {
-        console.error("Failed to load theme from storage", e);
-      }
-    };
-    loadTheme();
-  }, []);
-
-  const toggleTheme = async () => {
-    const newTheme = !isDarkTheme;
-    setIsDarkTheme(newTheme);
-    try {
-      await AsyncStorage.setItem("isDarkTheme", JSON.stringify(newTheme));
-    } catch (e) {
-      console.error("Failed to save theme to storage", e);
-    }
-  };
+  const colorScheme = useColorScheme();
+  const isDarkTheme = colorScheme === "dark";
 
   const theme = isDarkTheme ? CustomDarkTheme : CustomLightTheme;
 
   return (
-    <ThemeContext.Provider value={{ isDarkTheme, toggleTheme, theme }}>
+    <ThemeContext.Provider value={{ isDarkTheme, theme }}>
       {children}
     </ThemeContext.Provider>
   );

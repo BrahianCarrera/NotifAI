@@ -15,6 +15,8 @@ import {
   useTheme,
 } from "react-native-paper";
 
+import { SafeAreaView } from "react-native-safe-area-context";
+
 type UiArticle = {
   id: string;
   title: string;
@@ -22,6 +24,9 @@ type UiArticle = {
   category: string;
   imageUrl: string;
   views: string;
+  likes: number;
+  isBookmarked: boolean;
+  isLiked: boolean;
 };
 
 type Category = {
@@ -104,6 +109,9 @@ export default function Index() {
           category: a.category_name || "",
           imageUrl: a.image_url || "https://placehold.co/600x400/png",
           views: formatViews(a.views_count),
+          likes: a.likes_count || 0,
+          isBookmarked: a.is_favorite || false,
+          isLiked: a.is_liked || false,
         }));
         if (isMounted) setArticles(mapped);
       } catch (e: any) {
@@ -120,13 +128,51 @@ export default function Index() {
     };
   }, [selectedCategory, searchQuery]);
 
+  const handleBookmarkToggle = async (articleId: string) => {
+    try {
+      await apiRequest(`/articles/${articleId}/favorite`, { method: "POST" });
+      // Update the article in the list
+      setArticles((prev) =>
+        prev.map((a) =>
+          a.id === articleId ? { ...a, isBookmarked: !a.isBookmarked } : a
+        )
+      );
+    } catch (e: any) {
+      console.error("Error toggling bookmark:", e);
+    }
+  };
+
+  const handleLikeToggle = async (articleId: string) => {
+    try {
+      const res = await apiRequest(`/articles/${articleId}/like`, {
+        method: "POST",
+      });
+      const json = await handleApiResponse(res);
+
+      // Update the article in the list
+      setArticles((prev) =>
+        prev.map((a) =>
+          a.id === articleId
+            ? {
+                ...a,
+                isLiked: json?.data?.is_liked || false,
+                likes: json?.data?.likes_count || a.likes,
+              }
+            : a
+        )
+      );
+    } catch (e: any) {
+      console.error("Error toggling like:", e);
+    }
+  };
+
   const featured = useMemo<UiArticle | null>(() => {
     if (!articles.length) return null;
     return articles[0];
   }, [articles]);
 
   return (
-    <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }} edges={['left', 'right', 'bottom']}>
       <AppDrawer
         ref={drawerRef}
         onProfilePress={() => {
@@ -137,8 +183,7 @@ export default function Index() {
           router.push("/home" as Href);
         }}
         onBookmarksPress={() => {
-          // TODO: Navegar a la pantalla de marcadores cuando esté disponible
-          console.log("Navegar a Marcadores");
+          router.push("/bookmarks" as Href);
         }}
         onHistoryPress={() => {
           // TODO: Navegar a la pantalla de historial cuando esté disponible
@@ -212,7 +257,11 @@ export default function Index() {
 
         {featured && (
           <View style={{ paddingHorizontal: 16, paddingVertical: 12 }}>
-            <FeaturedCard article={featured} />
+            <FeaturedCard
+              article={featured}
+              onBookmarkPress={() => handleBookmarkToggle(featured.id)}
+              onLikePress={() => handleLikeToggle(featured.id)}
+            />
           </View>
         )}
 
@@ -234,10 +283,15 @@ export default function Index() {
                 category={item.category}
                 imageUrl={item.imageUrl}
                 views={item.views}
+                likes={item.likes}
+                isBookmarked={item.isBookmarked}
+                isLiked={item.isLiked}
+                onBookmarkPress={() => handleBookmarkToggle(item.id)}
+                onLikePress={() => handleLikeToggle(item.id)}
               />
             ))}
         </View>
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
